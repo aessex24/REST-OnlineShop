@@ -1,5 +1,5 @@
 const express = require ('express');
-
+const { body } = require('express-validator/check');
 const router = express.Router();
 
 const feedCtrl = require('../controllers/feed');
@@ -8,7 +8,12 @@ const feedCtrl = require('../controllers/feed');
 router.get('/posts', feedCtrl.getPosts);
 
 //Create single post
-router.post('/post', feedCtrl.createPost);
+router.post('/post', 
+  [
+    body('title').trim().isLength({ min: 5 }),
+    body('content').trim().isLength({ min: 5 }),
+  ]
+,feedCtrl.createPost);
 
 
 
