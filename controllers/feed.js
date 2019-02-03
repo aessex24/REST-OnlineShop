@@ -19,26 +19,33 @@ exports.getPosts = (req, res, next) => {
 exports.createPost = (req, res, next) => {
   const errors = validationResult(req);
   if(!errors.isEmpty()) {
-    const error = new Error('Validation Failed, entered data is incorrecy');
+    const error = new Error('Validation Failed, entered data is incorrect');
     error.statusCode = 422;
     throw error;
   }
+  if(!req.file) {
+      const error = new Error('No Image Provided');
+      error.statusCode = 422;
+      throw error;
+  }
+  const imageUrl = req.file.path;
   const title = req.body.title;
   const content = req.body.content;
   const post = new Post ({
-    title: title, 
+    title: title,
     content: content,
-    imageUrl: 'images/duck.jpeg',
+    imageUrl: imageUrl,
     creator: { name: 'andrew' },
   });
   post.save()
   .then(result => {
     res.status(201).json({
-      message: 'Post created Successfully!', 
+      message: 'Post created Successfully!',
       post: result,
     });
   })
   .catch(err => {
+    console.log(err);
     if(!err.statusCode) {
       err.statusCode = 500;
     }
