@@ -130,4 +130,18 @@ exports.updatePost = (req, res, next) => {
 const clearImage = filePath => {
     filePath = path.join(__dirname, '..', filePath);
     fs.unlink(filePath, err => console.log(err));
-}
+};
+
+exports.deletePost = (req, res, next) => {
+    const postId = req.params.postId;
+    Post.deleteOne({_id: postId})
+    .then(result => {
+        console.log(result);
+    })
+    .catch(err => {
+        if(!err.statusCode) {
+            err.statusCode = 500;
+            next(err);
+        }
+    });
+};
