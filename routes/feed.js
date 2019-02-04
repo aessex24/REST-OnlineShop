@@ -28,6 +28,8 @@ router.put('/post/:postId', isAuth,
 
 router.delete('/post/:postId', isAuth, feedCtrl.deletePost);
 
+router.get('/status', isAuth, feedCtrl.getStatus);
 
+router.put('/status', isAuth, feedCtrl.updateStatus);
 
 module.exports = router;

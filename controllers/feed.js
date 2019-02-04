@@ -64,7 +64,6 @@ exports.createPost = (req, res, next) => {
     });
   })
   .catch(err => {
-    console.log(err);
     if(!err.statusCode) {
       err.statusCode = 500;
     }
@@ -74,7 +73,6 @@ exports.createPost = (req, res, next) => {
 
 exports.getPost = (req, res, next) => {
     const postId = req.params.postId;
-    console.log(postId);
     Post.findById(postId)
     .then(post => {
       if(!post) {
@@ -82,7 +80,6 @@ exports.getPost = (req, res, next) => {
         error.statusCode = 404;
         throw error;
       }
-      console.log(post);
       res.status(200).json({
         message: 'Post Fetched',
         post: post
@@ -173,10 +170,17 @@ exports.deletePost = (req, res, next) => {
         return Post.findByIdAndRemove(postId);
     })
     .then(result => {
-        console.log(result);
-        res.status(200).json({
-          message: 'Post Deleted!'
-        })
+        return User.findById(req.userId);
+        
+    })    
+    .then(user => {
+      user.posts.pull(postId);
+      return user.save();
+    })
+    .then(result => {
+      res.status(200).json({
+        message: 'Post Deleted!'
+      })
     })
     .catch(err => {
         if(!err.statusCode) {
@@ -184,4 +188,57 @@ exports.deletePost = (req, res, next) => {
             next(err);
         }
     });
+};
+
+exports.getStatus = (req, res, next) => {
+  User.findById(req.userId)
+  .then(user => {
+    if(!user) {
+      const error = new Error('User Not Found!');
+      error.statusCode = 404;
+      throw error;
+    }
+    console.log(user.status);
+    res.status(200).json({
+      status: user.status,
+    });
+  })
+  .catch(err => {
+    if(!err.statusCode) {
+      err.statusCode = 500;
+      next(err);
+    } 
+  })
+};
+
+exports.updateStatus = (req, res, next) => {
+  console.log(req.body);
+  const newStatus = req.body.status;
+  console.log(`Status to be changed to ${newStatus}`);
+  let updateUser;
+  User.findById(req.userId)
+  .then(user => { 
+    if(!user) {
+      const error = new Error('User Not Found!');
+      error.statusCode = 404;
+      throw error;
+    }
+    console.log(`status before change ${user.status}`);
+    updateUser = user;
+    updateUser.status = newStatus;
+    return updateUser.save();
+  })
+  .then(result => {
+    console.log(`Status before sending response ${updateUser.status}`);
+    res.status(200).json({
+      message: 'status updated',
+      
+    });
+  })
+  .catch(err => {
+    if(!err.statusCode) {
+      err.statusCode = 500;
+      next(err);
+    } 
+  })
 };
