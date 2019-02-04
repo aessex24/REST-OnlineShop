@@ -19,4 +19,6 @@ router.put('/signup', [
   body('name').trim().not().isEmpty()
 ], authCtrl.signup);
 
+router.post('/login', authCtrl.login);
+
 module.exports = router;

@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const feedRoutes = require('./routes/feed');
 const authRoutes = require('./routes/auth');
+const keys = require('./config/keys');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
@@ -55,7 +56,7 @@ app.use((error, req, res, next) => {
   res.status(status).json({ message: message, data: data });
 });
 
-mongoose.connect('mongodb+srv://aessex_24:2s5j9Q61uPVA1BuG@cluster0-ochml.mongodb.net/messages?retyWrites=true')
+mongoose.connect(keys.MONGO_URI, {useNewUrlParser: true})
 .then( result => {
   app.listen(8080);
 })
