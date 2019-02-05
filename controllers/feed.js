@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator/check');
 const Post = require('../models/Post');
 const User = require('../models/User');
+const io = require('../socket');
 
 const fs = require('fs');
 const path = require('path');
@@ -12,7 +13,7 @@ exports.getPosts = (req, res, next) => {
   Post.find().countDocuments()
   .then( count => {
     totalItems = count;
-    return Post.find().skip((currentPage - 1) * perPage).limit(perPage);
+    return Post.find().populate('creator').skip((currentPage - 1) * perPage).limit(perPage);
   })
   .then(posts => {
     res.status(200).json({ message: 'Fetched Posts successfully', posts: posts, totalItems: totalItems });
@@ -57,6 +58,11 @@ exports.createPost = (req, res, next) => {
     return user.save();
   })
   .then(result => {
+    console.log(result);
+    io.getIO().emit('posts', {
+      action: 'create',
+      post: {...post._doc, creator: { _id: req.userId, name: creator.name }},
+    });
     res.status(201).json({
       message: 'Post created Successfully!',
       post: post,
@@ -185,8 +191,8 @@ exports.deletePost = (req, res, next) => {
     .catch(err => {
         if(!err.statusCode) {
             err.statusCode = 500;
-            next(err);
-        }
+          }
+          next(err);
     });
 };
 
