@@ -58,6 +58,11 @@ app.use((error, req, res, next) => {
 
 mongoose.connect(keys.MONGO_URI, {useNewUrlParser: true})
 .then( result => {
-  app.listen(8080);
+  const server = app.listen(8080);
+  const io = require('socket.io')(server); // sets up socket io
+  // executes for every client that connects to server
+  io.on('connection', socket => {
+    console.log('Client connected');
+  });
 })
 .catch(err => console.log(err));
