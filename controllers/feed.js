@@ -13,7 +13,7 @@ exports.getPosts = (req, res, next) => {
   Post.find().countDocuments()
   .then( count => {
     totalItems = count;
-    return Post.find().populate('creator').skip((currentPage - 1) * perPage).limit(perPage);
+    return Post.find().populate('creator').sort({ createdAt: -1 }).skip((currentPage - 1) * perPage).limit(perPage);
   })
   .then(posts => {
     res.status(200).json({ message: 'Fetched Posts successfully', posts: posts, totalItems: totalItems });
@@ -79,13 +79,14 @@ exports.createPost = (req, res, next) => {
 
 exports.getPost = (req, res, next) => {
     const postId = req.params.postId;
-    Post.findById(postId)
+    Post.findById(postId).populate('creator', 'name')
     .then(post => {
       if(!post) {
         const error = new Error('Could not find post.');
         error.statusCode = 404;
         throw error;
       }
+      console.log(post);
       res.status(200).json({
         message: 'Post Fetched',
         post: post
@@ -118,14 +119,14 @@ exports.updatePost = (req, res, next) => {
         error.statusCode = 422;
         throw error;
     }
-    Post.findById(postId)
+    Post.findById(postId).populate('creator')
     .then(post => {
       if(!post) {
           const error = new Error('Post Not Found');
           error.statusCode = 404;
           throw error;
       }
-      if(post.creator.toString() !== req.userId) {
+      if(post.creator._id.toString() !== req.userId) {
         const error = new Error('Not Authorized to Edit');
         error.statusCode = 403;
         throw error;
@@ -139,6 +140,11 @@ exports.updatePost = (req, res, next) => {
       return post.save();
     })
     .then(result => {
+      console.log(result);
+      io.getIO().emit('posts', {
+        action: 'update',
+        post: result ,
+      });
       res.status(200).json({
           message: 'Post Updated',
           post: result,
@@ -184,6 +190,11 @@ exports.deletePost = (req, res, next) => {
       return user.save();
     })
     .then(result => {
+      console.log(result);
+      io.getIO().emit('posts', {
+        action: 'delete',
+        post: postId,
+      });
       res.status(200).json({
         message: 'Post Deleted!'
       })
