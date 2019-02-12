@@ -6,7 +6,7 @@ const feedCtrl = require('../controllers/feed');
 const isAuth = require('../middleware/isAuth');
 
 //GET all posts
-router.get('/posts', isAuth, feedCtrl.getPosts);
+router.get('/posts', feedCtrl.getPosts);
 
 //Create single post
 router.post('/post', isAuth,
